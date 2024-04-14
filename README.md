@@ -13,7 +13,7 @@ exe.addAnonymousModule("turbopack", .{ .source_file = .{ .path = "<path>/pack.zi
 
 Via the package manager:
 ```sh
-zig fetch https://github.com/flut2/turbopack/archive/<current_commit>.tar.gz
+zig fetch https://github.com/flut2/turbopack/archive/<current_commit>.tar.gz --save turbopack
 ```
 
 ```zig
