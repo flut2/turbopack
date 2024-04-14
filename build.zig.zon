@@ -1,0 +1,11 @@
+.{
+    .name = "turbopack",
+    .version = "0.0.0",
+    .dependencies = .{},
+    .paths = .{
+        "LICENSE",
+        "pack.zig",
+        "build.zig",
+        "build.zig.zon",
+    },
+}
