@@ -83,7 +83,7 @@ pub fn main() !void {
     normal_ctx.list = std.ArrayList(pack.Rect).init(allocator);
     try normal_ctx.clear();
 
-    var rng = std.rand.DefaultPrng.init(0); // Intentionally seeded with 0, for reproducability.
+    var rng = std.rand.DefaultPrng.init(0); // Intentionally seeded with 0, for reproducibility.
     var rects_copy: [rects]pack.Rect = undefined;
     for (&test_rects) |*rect| {
         rect.w = rng.random().intRangeAtMost(i32, random_min, random_max);
