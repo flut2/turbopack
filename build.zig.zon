@@ -1,5 +1,6 @@
 .{
-    .name = "turbopack",
+    .fingerprint = 0x3cc517738e512cad,
+    .name = .turbopack,
     .version = "1.0.0",
     .dependencies = .{},
     .paths = .{
