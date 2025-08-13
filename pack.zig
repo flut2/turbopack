@@ -32,14 +32,14 @@ pub const IdRect = struct {
 
 pub const Context = struct {
     allocator: std.mem.Allocator,
-    list: std.ArrayListUnmanaged(Rect),
+    list: std.ArrayList(Rect),
     w: i32,
     h: i32,
 
     /// spaces_to_prealloc should be set to 2x rects supplied to pack() until deinit if setting assume_capacity to true in pack().
     /// Lower values will likely work, but are not guaranteed to.
     pub fn create(allocator: std.mem.Allocator, w: i32, h: i32, opts: struct { spaces_to_prealloc: u32 = 0 }) std.mem.Allocator.Error!Context {
-        var list: std.ArrayListUnmanaged(Rect) = if (opts.spaces_to_prealloc > 0)
+        var list: std.ArrayList(Rect) = if (opts.spaces_to_prealloc > 0)
             try .initCapacity(allocator, opts.spaces_to_prealloc)
         else
             .empty;
@@ -69,7 +69,7 @@ pub const Context = struct {
 inline fn append(
     comptime assume_capacity: bool,
     allocator: std.mem.Allocator,
-    noalias list: *std.ArrayListUnmanaged(Rect),
+    noalias list: *std.ArrayList(Rect),
     rect: Rect,
 ) std.mem.Allocator.Error!void {
     if (assume_capacity)
@@ -102,8 +102,8 @@ pub fn pack(
         if (ctx.list.items.len == 0) return error.NoSpaceLeft;
 
         var iter = std.mem.reverseIterator(ctx.list.items);
-        var i: usize = ctx.list.items.len - 1;
-        while (iter.next()) |space| : (i -= 1) {
+        var i: usize = ctx.list.items.len -% 1;
+        while (iter.next()) |space| : (i -%= 1) {
             const free_w = space.w - rect.w;
             const free_h = space.h - rect.h;
             if (free_w < 0 or free_h < 0) continue;

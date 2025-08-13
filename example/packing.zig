@@ -2,7 +2,7 @@ const std = @import("std");
 
 const pack = @import("turbopack");
 
-pub const std_options = std.Options{ .log_level = std.log.Level.info };
+pub const std_options: std.Options = .{ .log_level = std.log.Level.info };
 
 fn perimeterSort(_: void, lhs: pack.Rect, rhs: pack.Rect) bool {
     return lhs.perimeter() < rhs.perimeter();
@@ -21,7 +21,7 @@ fn maxSort(_: void, lhs: pack.Rect, rhs: pack.Rect) bool {
 }
 
 // Try messing with these values to see how each parameter can influence packing speed and tightness.
-// (if it even packs, which the unsorted random ones often don't at higher rect counts)
+// (if it even packs, the unsorted random ones often don't at higher rect counts)
 const w = 1024;
 const h = 1024;
 const rects = 4096;
@@ -60,7 +60,7 @@ pub fn main() !void {
         });
     } else |e| std.log.err("Packing the unsorted, no assumed capacity, uniform rect example failed: {}", .{e});
 
-    // Hack in order to avoid further normal_ctx packs from being preallocated
+    // Hack in order to avoid further normal_ctx packs being preallocated
     normal_ctx.list.deinit(allocator);
     normal_ctx.list = .empty;
     try normal_ctx.clear();
@@ -88,13 +88,14 @@ pub fn main() !void {
     try normal_ctx.clear();
 
     var rng: std.Random.DefaultPrng = .init(0); // Intentionally seeded with 0, for reproducibility.
-    var rects_copy: [rects]pack.Rect = undefined;
+    var rand = rng.random();
     for (&test_rects) |*rect| {
-        rect.w = rng.random().intRangeAtMost(i32, random_min, random_max);
-        rect.h = rng.random().intRangeAtMost(i32, random_min, random_max);
+        rect.w = rand.intRangeAtMost(i32, random_min, random_max);
+        rect.h = rand.intRangeAtMost(i32, random_min, random_max);
     }
 
     // Needed for the second sorting example, as the sorts modify the given rects
+    var rects_copy: [rects]pack.Rect = undefined;
     @memcpy(&rects_copy, &test_rects);
 
     timer.reset();
