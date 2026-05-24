@@ -29,61 +29,61 @@ const random_min = 1;
 const random_max = 8;
 const defaultSortFn = maxSort;
 
-pub fn main() !void {
-    var dbg_allocator = std.heap.DebugAllocator(.{}).init;
-    defer _ = dbg_allocator.deinit();
-    const allocator = dbg_allocator.allocator();
-
-    var assume_capacity_ctx: pack.Context = try .create(allocator, w, h, .{ .spaces_to_prealloc = rects * 2 });
+pub fn main(init: std.process.Init) !void {
+    var assume_capacity_ctx: pack.Context = try .create(init.gpa, w, h, .{ .spaces_to_prealloc = rects * 2 });
     defer assume_capacity_ctx.deinit();
 
-    var normal_ctx: pack.Context = try .create(allocator, w, h, .{});
+    var normal_ctx: pack.Context = try .create(init.gpa, w, h, .{});
     defer normal_ctx.deinit();
 
     var test_rects: [rects]pack.Rect = @splat(.{ .w = 16, .h = 16 });
 
-    var timer: std.time.Timer = try .start();
+    const clock_res = try std.Io.Clock.resolution(.real, init.io);
+    if (clock_res.nanoseconds == 0)
+        return error.UnsupportedClock;
+
+    var time: std.Io.Timestamp = .now(init.io, .real);
     if (pack.pack(pack.Rect, &assume_capacity_ctx, &test_rects, .{ .assume_capacity = true })) |_| {
-        std.log.info("Unsorted, assumed capacity, uniform rects: packed in {d}ns, area free: {d:.2}%", .{
-            timer.read(),
+        std.log.info("Unsorted, assumed capacity, uniform rects: packed in {}ns, area free: {d:.2}%", .{
+            time.durationTo(.now(init.io, .real)).nanoseconds,
             assume_capacity_ctx.areaFree() * 100.0,
         });
     } else |e| std.log.err("Packing the unsorted, assumed capacity, uniform rect example failed: {}", .{e});
 
     try assume_capacity_ctx.clear();
 
-    timer.reset();
+    time = .now(init.io, .real);
     if (pack.pack(pack.Rect, &normal_ctx, &test_rects, .{})) |_| {
-        std.log.info("Unsorted, no assumed capacity, uniform rects: packed in {d}ns, area free: {d:.2}%", .{
-            timer.read(),
+        std.log.info("Unsorted, no assumed capacity, uniform rects: packed in {}ns, area free: {d:.2}%", .{
+            time.durationTo(.now(init.io, .real)).nanoseconds,
             normal_ctx.areaFree() * 100.0,
         });
     } else |e| std.log.err("Packing the unsorted, no assumed capacity, uniform rect example failed: {}", .{e});
 
     // Hack in order to avoid further normal_ctx packs being preallocated
-    normal_ctx.list.deinit(allocator);
+    normal_ctx.list.deinit(init.gpa);
     normal_ctx.list = .empty;
     try normal_ctx.clear();
 
-    timer.reset();
+    time = .now(init.io, .real);
     if (pack.pack(pack.Rect, &assume_capacity_ctx, &test_rects, .{ .assume_capacity = true, .sortLessThanFn = defaultSortFn })) |_| {
-        std.log.info("Sorted, assumed capacity, uniform rects: packed in {d}ns, area free: {d:.2}%", .{
-            timer.read(),
+        std.log.info("Sorted, assumed capacity, uniform rects: packed in {}ns, area free: {d:.2}%", .{
+            time.durationTo(.now(init.io, .real)).nanoseconds,
             assume_capacity_ctx.areaFree() * 100.0,
         });
     } else |e| std.log.err("Packing the sorted, assumed capacity, uniform rect example failed: {}", .{e});
 
     try assume_capacity_ctx.clear();
 
-    timer.reset();
+    time = .now(init.io, .real);
     if (pack.pack(pack.Rect, &normal_ctx, &test_rects, .{ .sortLessThanFn = defaultSortFn })) |_| {
-        std.log.info("Sorted, no assumed capacity, uniform rects: packed in {d}ns, area free: {d:.2}%", .{
-            timer.read(),
+        std.log.info("Sorted, no assumed capacity, uniform rects: packed in {}ns, area free: {d:.2}%", .{
+            time.durationTo(.now(init.io, .real)).nanoseconds,
             normal_ctx.areaFree() * 100.0,
         });
     } else |e| std.log.err("Packing the sorted, no assumed capacity, uniform rect example failed: {}", .{e});
 
-    normal_ctx.list.deinit(allocator);
+    normal_ctx.list.deinit(init.gpa);
     normal_ctx.list = .empty;
     try normal_ctx.clear();
 
@@ -98,42 +98,42 @@ pub fn main() !void {
     var rects_copy: [rects]pack.Rect = undefined;
     @memcpy(&rects_copy, &test_rects);
 
-    timer.reset();
+    time = .now(init.io, .real);
     if (pack.pack(pack.Rect, &assume_capacity_ctx, &test_rects, .{ .assume_capacity = true })) |_| {
-        std.log.info("Unsorted, assumed capacity, random rects: packed in {d}ns, area free: {d:.2}%", .{
-            timer.read(),
+        std.log.info("Unsorted, assumed capacity, random rects: packed in {}ns, area free: {d:.2}%", .{
+            time.durationTo(.now(init.io, .real)).nanoseconds,
             assume_capacity_ctx.areaFree() * 100.0,
         });
     } else |e| std.log.err("Packing the unsorted, assumed capacity, random rect example failed: {}", .{e});
 
     try assume_capacity_ctx.clear();
 
-    timer.reset();
+    time = .now(init.io, .real);
     if (pack.pack(pack.Rect, &normal_ctx, &test_rects, .{})) |_| {
-        std.log.info("Unsorted, no assumed capacity, random rects: packed in {d}ns, area free: {d:.2}%", .{
-            timer.read(),
+        std.log.info("Unsorted, no assumed capacity, random rects: packed in {}ns, area free: {d:.2}%", .{
+            time.durationTo(.now(init.io, .real)).nanoseconds,
             normal_ctx.areaFree() * 100.0,
         });
     } else |e| std.log.err("Packing the unsorted, no assumed capacity, random rect example failed: {}", .{e});
 
-    normal_ctx.list.deinit(allocator);
+    normal_ctx.list.deinit(init.gpa);
     normal_ctx.list = .empty;
     try normal_ctx.clear();
 
-    timer.reset();
+    time = .now(init.io, .real);
     if (pack.pack(pack.Rect, &assume_capacity_ctx, &test_rects, .{ .assume_capacity = true, .sortLessThanFn = defaultSortFn })) |_| {
-        std.log.info("Sorted, assumed capacity, random rects: packed in {d}ns, area free: {d:.2}%", .{
-            timer.read(),
+        std.log.info("Sorted, assumed capacity, random rects: packed in {}ns, area free: {d:.2}%", .{
+            time.durationTo(.now(init.io, .real)).nanoseconds,
             assume_capacity_ctx.areaFree() * 100.0,
         });
     } else |e| std.log.err("Packing the sorted, assumed capacity, random rect example failed: {}", .{e});
 
     try assume_capacity_ctx.clear();
 
-    timer.reset();
+    time = .now(init.io, .real);
     if (pack.pack(pack.Rect, &normal_ctx, &rects_copy, .{ .sortLessThanFn = defaultSortFn })) |_| {
-        std.log.info("Sorted, no assumed capacity, random rects: packed in {d}ns, area free: {d:.2}%", .{
-            timer.read(),
+        std.log.info("Sorted, no assumed capacity, random rects: packed in {}ns, area free: {d:.2}%", .{
+            time.durationTo(.now(init.io, .real)).nanoseconds,
             normal_ctx.areaFree() * 100.0,
         });
     } else |e| std.log.err("Packing the sorted, no assumed capacity, random rect example failed: {}", .{e});

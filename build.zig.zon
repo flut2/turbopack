@@ -1,9 +1,9 @@
 .{
-    .fingerprint = 0x3cc517738e512cad,
     .name = .turbopack,
+    .fingerprint = 0x3cc517738e512cad,
     .version = "1.0.0",
     .dependencies = .{},
-    .minimum_zig_version = "0.16.0-dev.1484+d0ba6642b",
+    .minimum_zig_version = "0.16.0",
     .paths = .{
         "LICENSE",
         "pack.zig",
